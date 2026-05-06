@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { ThemeProvider } from "@/lib/providers/theme-provider";
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Hisab - Billing System",
-  description: "A modern billing system built with Next.js, Tailwind CSS, and Prisma. Streamline your invoicing and payment processes with ease.",
+  title: "Billing System",
+  description: "A billing system built with Next.js, TypeScript, and Tailwind CSS. It features role-based access control for super admins, shop owners, and staff members. The system allows for efficient management of billing processes, including invoice generation, payment tracking, and customer management.",
 };
 
 export default function RootLayout({
@@ -28,9 +29,20 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
+
+      </body>
     </html>
   );
 }
