@@ -87,14 +87,8 @@ const FloatingBackground: React.FC = () => {
 
 export default function HeroSection() {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-white dark:bg-[#0a0a0a] transition-colors duration-500">
+    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-black transition-colors duration-500">
       
-      {/* Background Radial Gradients */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute -top-[10%] -left-[10%] w-[50%] h-[60%] bg-purple-200/40 dark:bg-purple-900/30 blur-[120px] rounded-full opacity-60" />
-        <div className="absolute -bottom-[10%] -right-[10%] w-[50%] h-[60%] bg-purple-100/30 dark:bg-purple-800/20 blur-[120px] rounded-full opacity-60" />
-      </div>
-
       <FloatingBackground />
 
       <motion.div
@@ -111,16 +105,8 @@ export default function HeroSection() {
           Simplify Billing and <br />
           <motion.span
             className="relative inline-block px-6 py-2 mx-2"
-            animate={{ 
-              boxShadow: [
-                "0 0 0px rgba(147,51,234,0)", 
-                "0 0 50px rgba(147,51,234,0.4)", 
-                "0 0 0px rgba(147,51,234,0)"
-              ] 
-            }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
           >
-            <span className="absolute inset-0 bg-purple-600 rounded-[1.5rem] transform -rotate-1 shadow-lg"></span>
+            <span className="absolute inset-0 bg-purple-700 rounded-[1.5rem] transform -rotate-1"></span>
             <span className="relative text-white italic">Track Profits</span>
           </motion.span>
           Instantly
@@ -166,7 +152,7 @@ export default function HeroSection() {
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-zinc-200 dark:border-purple-900/20"></div>
           </div>
-          <span className="relative px-6 bg-white dark:bg-[#0a0a0a] text-[11px] font-bold italic uppercase tracking-[0.3em] text-purple-600 dark:text-purple-500 transition-colors">
+          <span className="relative px-6 bg-black text-[11px] font-bold italic uppercase tracking-[0.3em] text-purple-600 dark:text-purple-500 transition-colors">
             Automate Your Workflow
           </span>
         </motion.div>
