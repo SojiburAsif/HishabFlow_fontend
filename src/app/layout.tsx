@@ -39,7 +39,13 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
-          <Toaster />
+            <Toaster
+              position="top-center"
+              toastOptions={{
+                className: "text-black",
+                descriptionClassName: "text-zinc-700",
+              }}
+            />
         </ThemeProvider>
 
       </body>
