@@ -56,7 +56,7 @@ async function getNavbarUser(): Promise<NavbarUser> {
           }
         }
       } catch (error) {
-        console.log('[Navbar] API call failed, attempting token fallback:', error);
+        // API call failed, attempting token fallback
       }
     }
 
@@ -70,8 +70,6 @@ async function getNavbarUser(): Promise<NavbarUser> {
           const name = (decoded as any).name || (decoded as any).fullName || email;
           const role = (decoded as any).role || 'SHOP_OWNER';
 
-          console.log('[Navbar] Using user data from decoded token:', { email, name, role });
-
           return {
             name,
             email,
@@ -81,13 +79,13 @@ async function getNavbarUser(): Promise<NavbarUser> {
           };
         }
       } catch (error) {
-        console.error('[Navbar] Token fallback error:', error);
+        // Token fallback error
       }
     }
 
     return null;
   } catch (error) {
-    console.error('[Navbar] Error:', error);
+    // Error in navbar user fetching
     return null;
   }
 }

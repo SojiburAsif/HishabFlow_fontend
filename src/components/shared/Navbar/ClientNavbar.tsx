@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   Menu,
   X,
@@ -16,10 +16,11 @@ import {
   Crown,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Logo from '../logo/logo';
 import ThemeToggle from '../Theme/Toogle';
+import { authService } from '@/services/auth.service';
 
 type NavbarUser = {
   name?: string;
@@ -38,7 +39,36 @@ export default function ClientNavbar({ user }: { user: NavbarUser }) {
   const [scrolled, setScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      if (isMountedRef.current) setIsLoggingOut(true);
+      const response = await authService.logout();
+      
+      if (response.success) {
+        // Clear local storage and redirect to home
+        router.push('/');
+        router.refresh();
+      } else if (isMountedRef.current) {
+        setIsLoggingOut(false);
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      if (isMountedRef.current) {
+        setIsLoggingOut(false);
+      }
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -216,8 +246,12 @@ export default function ClientNavbar({ user }: { user: NavbarUser }) {
                       <Link href="/settings" className="flex items-center gap-2.5 p-2 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg">
                         <Settings size={14} /> Settings
                       </Link>
-                      <button className="w-full flex items-center gap-2.5 p-2 text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all pt-2 mt-1 border-t dark:border-zinc-800">
-                        <LogOut size={14} /> Sign Out
+                      <button 
+                        onClick={handleLogout}
+                        disabled={isLoggingOut}
+                        className="w-full flex items-center gap-2.5 p-2 text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all pt-2 mt-1 border-t dark:border-zinc-800 disabled:opacity-50"
+                      >
+                        <LogOut size={14} /> {isLoggingOut ? 'Signing out...' : 'Sign Out'}
                       </button>
                     </div>
                   </motion.div>
@@ -249,7 +283,15 @@ export default function ClientNavbar({ user }: { user: NavbarUser }) {
             <Link href="/login" className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Login</Link>
             {displayUser && <Link href="/dashboard" className="text-sm font-semibold text-purple-600">Dashboard</Link>}
             <hr className="dark:border-zinc-800" />
-            <button className="text-sm font-bold text-red-500 text-left">Logout System</button>
+            {displayUser && (
+              <button 
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="text-sm font-bold text-red-500 text-left disabled:opacity-50"
+              >
+                {isLoggingOut ? 'Signing out...' : 'Logout System'}
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

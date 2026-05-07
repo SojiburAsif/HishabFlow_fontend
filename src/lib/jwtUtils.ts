@@ -9,10 +9,6 @@ export type VerifyResult =
 const verifyToken = (token: string, secret: string): VerifyResult => {
     try {
         const decoded = jwt.verify(token, secret) as JwtPayload;
-        console.log('[jwtUtils] Token verified successfully:', {
-            payload: decoded,
-            keys: Object.keys(decoded),
-        });
         return {
             success: true,
             data: decoded
@@ -32,10 +28,6 @@ const verifyToken = (token: string, secret: string): VerifyResult => {
 
 const decodedToken = (token: string): JwtPayload | null => {
     const decoded = jwt.decode(token) as JwtPayload | null;
-    console.log('[jwtUtils] Token decoded (unverified):', {
-        payload: decoded,
-        keys: decoded ? Object.keys(decoded) : [],
-    });
     return decoded;
 }
 
