@@ -1,11 +1,5 @@
-import DashboardRoutePage from "@/components/shared/dashboard/DashboardRoutePage";
+import DashboardOverview from "@/components/shared/dashboard/DashboardOverview";
 
 export default function DashboardOverviewPage() {
-  return (
-    <DashboardRoutePage
-      title="Overview"
-      description="A quick summary of your shop activity, daily work, and important actions lives here."
-      badge="Main Dashboard"
-    />
-  );
+  return <DashboardOverview />;
 }

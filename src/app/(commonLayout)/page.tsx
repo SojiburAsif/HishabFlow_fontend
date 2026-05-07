@@ -5,7 +5,7 @@ import Subscription from "@/components/static/subscription";
 
 export default function Home() {
   return (
-    <main>
+    <main className="bg-zinc-50 text-zinc-950 dark:bg-black dark:text-white">
       <HeroSection />
       <Subscription />
       <QuickHighlights />
