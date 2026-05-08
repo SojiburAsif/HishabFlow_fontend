@@ -48,11 +48,8 @@ type MetricCard = {
   tone: string;
 };
 
-const currency = (value?: number | null) =>
-  `৳${Number(value ?? 0).toLocaleString("en-US")}`;
-
-const compact = (value?: number | null) =>
-  Number(value ?? 0).toLocaleString("en-US");
+const currency = (value?: number | null) => `৳${Number(value ?? 0).toLocaleString("en-US")}`;
+const compact = (value?: number | null) => Number(value ?? 0).toLocaleString("en-US");
 
 const formatMonth = (label: string) => {
   const [year, month] = label.split("-").map(Number);
@@ -87,7 +84,7 @@ const statusChartConfig = {
 
 function MetricTile({ title, value, description, icon: Icon, tone }: MetricCard) {
   return (
-    <Card className="group overflow-hidden border-zinc-800 bg-zinc-950/95 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <Card className="group overflow-hidden border-zinc-200 bg-white/95 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-zinc-800 dark:bg-black/95">
       <CardContent className="relative flex items-start gap-4 p-5">
         <div
           className={cn(
@@ -99,18 +96,16 @@ function MetricTile({ title, value, description, icon: Icon, tone }: MetricCard)
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-zinc-400">
+          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-zinc-400 dark:text-zinc-500">
             {title}
           </p>
-          <p className="mt-2 text-2xl font-black tracking-tight text-white">
+          <p className="mt-2 text-2xl font-black tracking-tight text-zinc-950 dark:text-white">
             {value}
           </p>
-          <p className="mt-1 text-xs leading-5 text-zinc-400">
+          <p className="mt-1 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
             {description}
           </p>
         </div>
-
-        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
       </CardContent>
     </Card>
   );
@@ -118,12 +113,12 @@ function MetricTile({ title, value, description, icon: Icon, tone }: MetricCard)
 
 function EmptyState({ title, description }: { title: string; description: string }) {
   return (
-    <div className="rounded-3xl border border-dashed border-zinc-800 bg-black p-8 text-center">
-      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-600/10 text-purple-400">
+    <div className="rounded-3xl border border-dashed border-zinc-200 bg-zinc-50 p-8 text-center dark:border-zinc-800 dark:bg-black">
+      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-300">
         <BarChart3 className="h-5 w-5" />
       </div>
-      <p className="text-base font-bold text-white">{title}</p>
-      <p className="mt-2 text-sm text-zinc-400">{description}</p>
+      <p className="text-base font-bold text-zinc-900 dark:text-white">{title}</p>
+      <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">{description}</p>
     </div>
   );
 }
@@ -131,46 +126,46 @@ function EmptyState({ title, description }: { title: string; description: string
 function LoadingView() {
   return (
     <div className="space-y-8">
-      <section className="overflow-hidden rounded-[2.5rem] border border-zinc-800 bg-black p-6 shadow-xl md:p-8">
+      <section className="overflow-hidden rounded-[2.5rem] border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-black md:p-8">
         <div className="flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-4xl space-y-5">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="h-7 w-24 animate-pulse rounded-full bg-zinc-900" />
-              <div className="h-7 w-28 animate-pulse rounded-full bg-zinc-900" />
-              <div className="h-7 w-24 animate-pulse rounded-full bg-zinc-900" />
+              <div className="h-7 w-24 animate-pulse rounded-full bg-zinc-100 dark:bg-black" />
+              <div className="h-7 w-28 animate-pulse rounded-full bg-zinc-100 dark:bg-black" />
+              <div className="h-7 w-24 animate-pulse rounded-full bg-zinc-100 dark:bg-black" />
             </div>
 
             <div className="space-y-3">
-              <div className="h-14 w-full max-w-3xl animate-pulse rounded-3xl bg-zinc-900" />
-              <div className="h-5 w-full max-w-2xl animate-pulse rounded-full bg-zinc-900" />
-              <div className="h-5 w-4/5 animate-pulse rounded-full bg-zinc-900" />
+              <div className="h-14 w-full max-w-3xl animate-pulse rounded-3xl bg-zinc-100 dark:bg-black" />
+              <div className="h-5 w-full max-w-2xl animate-pulse rounded-full bg-zinc-100 dark:bg-black" />
+              <div className="h-5 w-4/5 animate-pulse rounded-full bg-zinc-100 dark:bg-black" />
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-4">
-                <div className="h-3 w-20 animate-pulse rounded-full bg-zinc-800" />
-                <div className="mt-4 h-5 w-28 animate-pulse rounded-full bg-zinc-800" />
+              <div className="rounded-3xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black">
+                <div className="h-3 w-20 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800" />
+                <div className="mt-4 h-5 w-28 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800" />
               </div>
-              <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-4">
-                <div className="h-3 w-20 animate-pulse rounded-full bg-zinc-800" />
-                <div className="mt-4 h-5 w-32 animate-pulse rounded-full bg-zinc-800" />
+              <div className="rounded-3xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black">
+                <div className="h-3 w-20 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800" />
+                <div className="mt-4 h-5 w-32 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800" />
               </div>
-              <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-4">
-                <div className="h-3 w-20 animate-pulse rounded-full bg-zinc-800" />
-                <div className="mt-4 h-5 w-24 animate-pulse rounded-full bg-zinc-800" />
+              <div className="rounded-3xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black">
+                <div className="h-3 w-20 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800" />
+                <div className="mt-4 h-5 w-24 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800" />
               </div>
             </div>
           </div>
 
-          <div className="w-full max-w-xl rounded-[2rem] border border-zinc-800 bg-zinc-950 p-4">
+          <div className="w-full max-w-xl rounded-[2rem] border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black">
             <div className="mb-4 flex items-center justify-between">
               <div className="space-y-2">
-                <div className="h-3 w-28 animate-pulse rounded-full bg-zinc-800" />
-                <div className="h-5 w-40 animate-pulse rounded-full bg-zinc-800" />
+                <div className="h-3 w-28 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800" />
+                <div className="h-5 w-40 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800" />
               </div>
-              <div className="h-8 w-20 animate-pulse rounded-2xl bg-zinc-800" />
+              <div className="h-8 w-20 animate-pulse rounded-2xl bg-zinc-200 dark:bg-zinc-800" />
             </div>
-            <div className="h-72 animate-pulse rounded-[1.75rem] bg-zinc-900" />
+            <div className="h-72 animate-pulse rounded-[1.75rem] bg-zinc-200 dark:bg-zinc-800" />
           </div>
         </div>
       </section>
@@ -179,14 +174,14 @@ function LoadingView() {
         {Array.from({ length: 6 }).map((_, index) => (
           <div
             key={index}
-            className="overflow-hidden rounded-[2rem] border border-zinc-800 bg-black p-5 shadow-sm"
+            className="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-black"
           >
             <div className="flex items-start gap-4">
-              <div className="h-12 w-12 shrink-0 animate-pulse rounded-2xl bg-zinc-800" />
+              <div className="h-12 w-12 shrink-0 animate-pulse rounded-2xl bg-zinc-200 dark:bg-zinc-800" />
               <div className="min-w-0 flex-1 space-y-3">
-                <div className="h-3 w-20 animate-pulse rounded-full bg-zinc-800" />
-                <div className="h-7 w-28 animate-pulse rounded-full bg-zinc-800" />
-                <div className="h-3 w-full animate-pulse rounded-full bg-zinc-800" />
+                <div className="h-3 w-20 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800" />
+                <div className="h-7 w-28 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800" />
+                <div className="h-3 w-full animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800" />
               </div>
             </div>
           </div>
@@ -194,27 +189,51 @@ function LoadingView() {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
-        <div className="overflow-hidden rounded-[2rem] border border-zinc-800 bg-black shadow-sm">
-          <div className="border-b border-zinc-800 bg-zinc-950/60 p-6">
-            <div className="h-6 w-40 animate-pulse rounded-full bg-zinc-800" />
-            <div className="mt-3 h-4 w-72 animate-pulse rounded-full bg-zinc-800" />
+        <div className="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-black">
+          <div className="border-b border-zinc-200/70 bg-zinc-50/60 p-6 dark:border-zinc-800 dark:bg-black/30">
+            <div className="h-6 w-40 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800" />
+            <div className="mt-3 h-4 w-72 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800" />
           </div>
           <div className="p-4 md:p-6">
-            <div className="h-96 animate-pulse rounded-[1.75rem] bg-zinc-900" />
+            <div className="h-96 animate-pulse rounded-[1.75rem] bg-zinc-200 dark:bg-zinc-800" />
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-[2rem] border border-zinc-800 bg-black shadow-sm">
-          <div className="border-b border-zinc-800 bg-zinc-950/60 p-6">
-            <div className="h-6 w-44 animate-pulse rounded-full bg-zinc-800" />
-            <div className="mt-3 h-4 w-64 animate-pulse rounded-full bg-zinc-800" />
+        <div className="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-black">
+          <div className="border-b border-zinc-200/70 bg-zinc-50/60 p-6 dark:border-zinc-800 dark:bg-black/30">
+            <div className="h-6 w-44 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800" />
+            <div className="mt-3 h-4 w-64 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800" />
           </div>
           <div className="p-4 md:p-6">
-            <div className="h-96 animate-pulse rounded-[1.75rem] bg-zinc-900" />
+            <div className="h-96 animate-pulse rounded-[1.75rem] bg-zinc-200 dark:bg-zinc-800" />
           </div>
         </div>
       </section>
     </div>
+  );
+}
+
+function ErrorView({ error, onRetry }: { error: string; onRetry: () => void }) {
+  return (
+    <Card className="border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-black">
+      <CardContent className="flex flex-col items-center gap-4 p-10 text-center">
+        <div className="rounded-full bg-rose-50 p-4 text-rose-500 dark:bg-rose-500/10">
+          <AlertTriangle className="h-6 w-6" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-zinc-950 dark:text-white">
+            Dashboard unavailable
+          </h2>
+          <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">{error}</p>
+        </div>
+        <Button
+          onClick={onRetry}
+          className="gap-2 rounded-full bg-purple-600 text-white hover:bg-purple-700"
+        >
+          <RefreshCcw className="h-4 w-4" /> Try again
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -243,7 +262,9 @@ export default function DashboardOverview() {
   };
 
   React.useEffect(() => {
-    void loadStats();
+    void Promise.resolve().then(() => {
+      void loadStats();
+    });
   }, []);
 
   const overview = stats?.overview;
@@ -260,42 +281,42 @@ export default function DashboardOverview() {
             value: compact(overview?.users?.total),
             description: `${compact(overview?.users?.active)} active · ${compact(overview?.users?.suspended)} suspended`,
             icon: Users,
-            tone: "bg-gradient-to-br from-purple-600 to-fuchsia-600",
+            tone: "bg-linear-to-br from-purple-600 to-fuchsia-600",
           },
           {
             title: "Shops",
             value: compact(overview?.shops?.total),
             description: `${compact(overview?.shops?.active)} active · ${compact(overview?.shops?.pending)} pending`,
             icon: Building2,
-            tone: "bg-gradient-to-br from-cyan-600 to-sky-600",
+            tone: "bg-linear-to-br from-cyan-600 to-sky-600",
           },
           {
             title: "Revenue",
             value: currency(overview?.commerce?.revenue),
             description: `${compact(overview?.commerce?.invoices)} invoices · ${compact(overview?.commerce?.lowStockProducts)} low stock items`,
             icon: Wallet,
-            tone: "bg-gradient-to-br from-emerald-600 to-teal-600",
+            tone: "bg-linear-to-br from-emerald-600 to-teal-600",
           },
           {
             title: "Profit",
             value: currency(overview?.commerce?.profit),
             description: `${compact(overview?.commerce?.products)} products · ${compact(overview?.commerce?.categories)} categories`,
             icon: TrendingUp,
-            tone: "bg-gradient-to-br from-zinc-800 to-zinc-950",
+            tone: "bg-linear-to-br from-zinc-800 to-zinc-950",
           },
           {
             title: "Subscriptions",
             value: compact(overview?.subscriptions?.total),
             description: `${compact(overview?.subscriptions?.active)} active · ${compact(overview?.subscriptions?.trial)} trial`,
             icon: ShieldCheck,
-            tone: "bg-gradient-to-br from-violet-600 to-indigo-600",
+            tone: "bg-linear-to-br from-violet-600 to-indigo-600",
           },
           {
             title: "Staff",
             value: compact(overview?.staff),
             description: "Team members and operational capacity",
             icon: Package,
-            tone: "bg-gradient-to-br from-orange-500 to-amber-500",
+            tone: "bg-linear-to-br from-orange-500 to-amber-500",
           },
         ]
       : [
@@ -304,42 +325,42 @@ export default function DashboardOverview() {
             value: compact(overview?.products),
             description: `${compact(overview?.activeProducts)} active · ${compact(overview?.lowStockProducts)} low stock`,
             icon: ShoppingCart,
-            tone: "bg-gradient-to-br from-purple-600 to-fuchsia-600",
+            tone: "bg-linear-to-br from-purple-600 to-fuchsia-600",
           },
           {
             title: "Invoices",
             value: compact(overview?.invoices),
             description: `${compact(overview?.currentMonthRevenue)} this month`,
             icon: ReceiptText,
-            tone: "bg-gradient-to-br from-cyan-600 to-sky-600",
+            tone: "bg-linear-to-br from-cyan-600 to-sky-600",
           },
           {
             title: "Revenue",
             value: currency(overview?.revenue),
             description: `${currency(stats?.recentPerformance?.monthToDateRevenue)} month to date`,
             icon: Wallet,
-            tone: "bg-gradient-to-br from-emerald-600 to-teal-600",
+            tone: "bg-linear-to-br from-emerald-600 to-teal-600",
           },
           {
             title: "Profit",
             value: currency(overview?.profit),
             description: `${currency(stats?.recentPerformance?.monthToDateProfit)} this month`,
             icon: TrendingUp,
-            tone: "bg-gradient-to-br from-zinc-800 to-zinc-950",
+            tone: "bg-linear-to-br from-zinc-800 to-zinc-950",
           },
           {
             title: "Categories",
             value: compact(overview?.categories),
             description: `${compact(overview?.stockMovements)} stock movements tracked`,
             icon: BarChart3,
-            tone: "bg-gradient-to-br from-violet-600 to-indigo-600",
+            tone: "bg-linear-to-br from-violet-600 to-indigo-600",
           },
           {
             title: "Team",
             value: compact(overview?.staff),
             description: "Active shop staff and permissions",
             icon: Users,
-            tone: "bg-gradient-to-br from-orange-500 to-amber-500",
+            tone: "bg-linear-to-br from-orange-500 to-amber-500",
           },
         ]
     : [];
@@ -376,82 +397,30 @@ export default function DashboardOverview() {
   }
 
   if (error) {
-    return (
-      <div className="space-y-8">
-        <section className="overflow-hidden rounded-[2.5rem] border border-zinc-800 bg-black p-6 shadow-xl md:p-8">
-          <div className="flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
-            <div className="max-w-4xl space-y-5">
-              <div className="flex flex-wrap items-center gap-3">
-                <Badge className="rounded-full bg-purple-600 px-3 py-1 text-[10px] font-black uppercase tracking-[0.3em] text-white hover:bg-purple-600">
-                  {isAdmin ? "Admin Hub" : "Shop Hub"}
-                </Badge>
-                <Chip color="warning" variant="soft" size="sm">
-                  Error state
-                </Chip>
-              </div>
-
-              <div>
-                <h1 className="text-4xl font-black tracking-tight text-white md:text-6xl">
-                  Dashboard unavailable
-                </h1>
-                <p className="mt-4 max-w-3xl text-sm leading-7 text-zinc-400 md:text-base">
-                  {error}
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <Card className="border-zinc-800 bg-black shadow-sm">
-          <CardContent className="flex flex-col items-center gap-4 p-10 text-center">
-            <div className="rounded-full bg-rose-500/10 p-4 text-rose-400">
-              <AlertTriangle className="h-6 w-6" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-white">Dashboard unavailable</h2>
-              <p className="mt-2 text-sm text-zinc-400">{error}</p>
-            </div>
-            <Button
-              onClick={() => void loadStats()}
-              className="gap-2 rounded-full bg-purple-600 text-white hover:bg-purple-700"
-            >
-              <RefreshCcw className="h-4 w-4" /> Try again
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <ErrorView error={error} onRetry={() => void loadStats()} />;
   }
 
   return (
-    <div className="space-y-8 bg-black text-white">
-      <section className="relative overflow-hidden rounded-[2.5rem] border border-zinc-800 bg-black p-6 shadow-xl md:p-8">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,0.22),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(34,197,94,0.12),transparent_35%)]" />
+    <div className="space-y-8">
+      <section className="relative overflow-hidden rounded-[2.5rem] border border-zinc-200 bg-zinc-950 p-6 text-white shadow-xl dark:border-zinc-800 dark:bg-black md:p-8">
         <div className="relative flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-4xl space-y-5">
             <div className="flex flex-wrap items-center gap-3">
               <Badge className="rounded-full bg-purple-600 px-3 py-1 text-[10px] font-black uppercase tracking-[0.3em] text-white hover:bg-purple-600">
                 {isAdmin ? "Admin Hub" : "Shop Hub"}
               </Badge>
-
               {stats?.shop?.subscriptionStatus ? (
                 <Chip
-                  color={
-                    stats.shop.subscriptionStatus.toLowerCase().includes("active")
-                      ? "success"
-                      : "warning"
-                  }
+                  color={stats.shop.subscriptionStatus.toLowerCase().includes("active") ? "success" : "warning"}
                   variant="soft"
                   size="sm"
                 >
                   {stats.shop.subscriptionStatus}
                 </Chip>
               ) : null}
-
               <Chip color="success" variant="soft" size="sm">
                 Live data connected
               </Chip>
-
               {stats?.permissions?.canViewReports === false ? (
                 <Chip color="warning" variant="soft" size="sm">
                   Limited reports
@@ -491,9 +460,7 @@ export default function DashboardOverview() {
                 <p className="text-[10px] font-black uppercase tracking-[0.28em] text-zinc-400">
                   Last Sync
                 </p>
-                <p className="mt-2 text-sm font-bold text-white">
-                  {new Date().toLocaleString()}
-                </p>
+                <p className="mt-2 text-sm font-bold text-white">—</p>
               </div>
             </div>
           </div>
@@ -553,7 +520,7 @@ export default function DashboardOverview() {
             </ChartContainer>
 
             <div className="mt-4 grid grid-cols-2 gap-3">
-              <div className="rounded-2xl bg-zinc-950/80 p-4">
+              <div className="rounded-2xl bg-black/70 p-4">
                 <p className="text-[10px] font-black uppercase tracking-[0.28em] text-zinc-400">
                   Total Revenue
                 </p>
@@ -561,7 +528,7 @@ export default function DashboardOverview() {
                   {currency(isAdmin ? overview?.commerce?.revenue : overview?.revenue)}
                 </p>
               </div>
-              <div className="rounded-2xl bg-zinc-950/80 p-4">
+              <div className="rounded-2xl bg-black/70 p-4">
                 <p className="text-[10px] font-black uppercase tracking-[0.28em] text-zinc-400">
                   Total Profit
                 </p>
@@ -586,20 +553,6 @@ export default function DashboardOverview() {
             </div>
 
             <div className="flex items-center gap-3 rounded-3xl border border-white/10 bg-black/40 p-4">
-              <div className="rounded-2xl bg-purple-600 p-3 text-white">
-                <ShieldCheck className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-zinc-400">
-                  Subscription
-                </p>
-                <p className="mt-1 text-sm font-bold text-white">
-                  {stats.shop.subscriptionStatus}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 rounded-3xl border border-white/10 bg-black/40 p-4">
               <div className="rounded-2xl bg-emerald-600 p-3 text-white">
                 <Building2 className="h-5 w-5" />
               </div>
@@ -621,18 +574,20 @@ export default function DashboardOverview() {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
-        <Card className="overflow-hidden border-zinc-800 bg-black shadow-sm">
-          <CardHeader className="border-b border-zinc-800 bg-zinc-950/60 pb-4">
+        <Card className="overflow-hidden border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-black">
+          <CardHeader className="border-b border-zinc-200/70 bg-zinc-50/60 pb-4 dark:border-zinc-800 dark:bg-black/30">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <CardTitle className="text-xl text-white">Revenue trend</CardTitle>
-                <CardDescription className="text-zinc-400">
+                <CardTitle className="text-xl text-zinc-950 dark:text-white">
+                  Revenue trend
+                </CardTitle>
+                <CardDescription>
                   Monthly revenue and invoice volume across the last 12 months.
                 </CardDescription>
               </div>
               <Badge
                 variant="outline"
-                className="w-fit rounded-full border-zinc-800 text-zinc-400"
+                className="w-fit rounded-full border-zinc-200 text-zinc-500 dark:border-zinc-800 dark:text-zinc-400"
               >
                 Last 12 months
               </Badge>
@@ -670,10 +625,12 @@ export default function DashboardOverview() {
           </CardContent>
         </Card>
 
-        <Card className="overflow-hidden border-zinc-800 bg-black shadow-sm">
-          <CardHeader className="border-b border-zinc-800 bg-zinc-950/60 pb-4">
-            <CardTitle className="text-xl text-white">Operational snapshot</CardTitle>
-            <CardDescription className="text-zinc-400">
+        <Card className="overflow-hidden border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-black">
+          <CardHeader className="border-b border-zinc-200/70 bg-zinc-50/60 pb-4 dark:border-zinc-800 dark:bg-black/30">
+            <CardTitle className="text-xl text-zinc-950 dark:text-white">
+              Operational snapshot
+            </CardTitle>
+            <CardDescription>
               Distribution of activity in the current workspace.
             </CardDescription>
           </CardHeader>
@@ -692,10 +649,12 @@ export default function DashboardOverview() {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <Card className="overflow-hidden border-zinc-800 bg-black shadow-sm">
-          <CardHeader className="border-b border-zinc-800 bg-zinc-950/60 pb-4">
-            <CardTitle className="text-xl text-white">Top ranking</CardTitle>
-            <CardDescription className="text-zinc-400">
+        <Card className="overflow-hidden border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-black">
+          <CardHeader className="border-b border-zinc-200/70 bg-zinc-50/60 pb-4 dark:border-zinc-800 dark:bg-black/30">
+            <CardTitle className="text-xl text-zinc-950 dark:text-white">
+              Top ranking
+            </CardTitle>
+            <CardDescription>
               {isAdmin ? "Highest revenue shops" : "Best performing products"}
             </CardDescription>
           </CardHeader>
@@ -750,29 +709,29 @@ export default function DashboardOverview() {
           </CardContent>
         </Card>
 
-        <Card className="overflow-hidden border-zinc-800 bg-black shadow-sm">
-          <CardHeader className="border-b border-zinc-800 bg-zinc-950/60 pb-4">
-            <CardTitle className="text-xl text-white">Quick stats</CardTitle>
-            <CardDescription className="text-zinc-400">
-              Everything important in one glance.
-            </CardDescription>
+        <Card className="overflow-hidden border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-black">
+          <CardHeader className="border-b border-zinc-200/70 bg-zinc-50/60 pb-4 dark:border-zinc-800 dark:bg-black/30">
+            <CardTitle className="text-xl text-zinc-950 dark:text-white">
+              Quick stats
+            </CardTitle>
+            <CardDescription>Everything important in one glance.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 p-4 md:p-6">
             {quickStats.map((item) => (
               <div
                 key={item.label}
-                className="flex items-center justify-between rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3"
+                className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-800 dark:bg-black/40"
               >
-                <span className="text-sm text-zinc-400">{item.label}</span>
-                <span className="text-sm font-bold text-white">{item.value}</span>
+                <span className="text-sm text-zinc-500 dark:text-zinc-400">{item.label}</span>
+                <span className="text-sm font-bold text-zinc-950 dark:text-white">{item.value}</span>
               </div>
             ))}
 
-            <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-950 p-4">
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">
+            <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black/30">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-zinc-500">
                 Live summary
               </p>
-              <p className="mt-2 text-sm leading-6 text-zinc-400">
+              <p className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
                 {isAdmin
                   ? "The admin dashboard blends financial performance, shop lifecycle, and subscription health so bottlenecks are easy to catch."
                   : "The shop dashboard keeps sales, products, and staff activity visible so daily operations stay tight and responsive."}
@@ -783,17 +742,19 @@ export default function DashboardOverview() {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-3">
-        <Card className="overflow-hidden border-zinc-800 bg-black shadow-sm xl:col-span-2">
-          <CardHeader className="border-b border-zinc-800 bg-zinc-950/60 pb-4">
-            <CardTitle className="text-xl text-white">Recent activity</CardTitle>
-            <CardDescription className="text-zinc-400">
+        <Card className="overflow-hidden border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-black xl:col-span-2">
+          <CardHeader className="border-b border-zinc-200/70 bg-zinc-50/60 pb-4 dark:border-zinc-800 dark:bg-black/30">
+            <CardTitle className="text-xl text-zinc-950 dark:text-white">
+              Recent activity
+            </CardTitle>
+            <CardDescription>
               Latest records pulled from the backend dashboard service.
             </CardDescription>
           </CardHeader>
 
           <CardContent className="p-4 md:p-6">
             <Tabs defaultValue={isAdmin ? "invoices" : "products"} className="w-full">
-              <TabsList className="mb-5 w-full justify-start rounded-full bg-zinc-950">
+              <TabsList className="mb-5 w-full justify-start rounded-full bg-zinc-100 dark:bg-black">
                 <TabsTrigger value="invoices">Invoices</TabsTrigger>
                 <TabsTrigger value={isAdmin ? "shops" : "products"}>
                   {isAdmin ? "Shops" : "Products"}
@@ -806,13 +767,13 @@ export default function DashboardOverview() {
                   {(recent?.invoices ?? []).slice(0, 6).map((invoice) => (
                     <div
                       key={invoice.id}
-                      className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3"
+                      className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-800 dark:bg-black/40"
                     >
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-bold text-white">
+                        <p className="truncate text-sm font-bold text-zinc-950 dark:text-white">
                           {invoice.invoiceNumber}
                         </p>
-                        <p className="mt-1 truncate text-xs text-zinc-400">
+                        <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400">
                           {invoice.shop?.shopName ||
                             invoice.createdByUser?.name ||
                             invoice.createdByUser?.email ||
@@ -821,10 +782,10 @@ export default function DashboardOverview() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-bold text-white">
+                        <p className="text-sm font-bold text-zinc-950 dark:text-white">
                           {currency(invoice.grandTotal)}
                         </p>
-                        <p className="text-xs text-emerald-400">
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400">
                           Profit {currency(invoice.totalProfit)}
                         </p>
                       </div>
@@ -846,24 +807,21 @@ export default function DashboardOverview() {
                     ? (recent?.shops ?? []).slice(0, 6).map((shop) => (
                         <div
                           key={shop.id}
-                          className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3"
+                          className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-800 dark:bg-black/40"
                         >
                           <div className="min-w-0">
-                            <p className="truncate text-sm font-bold text-white">
+                            <p className="truncate text-sm font-bold text-zinc-950 dark:text-white">
                               {shop.shopName}
                             </p>
-                            <p className="mt-1 truncate text-xs text-zinc-400">
-                              Owner:{" "}
-                              {shop.ownerProfile?.user?.name ||
-                                shop.ownerProfile?.user?.email ||
-                                "Unknown"}
+                            <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400">
+                              Owner: {shop.ownerProfile?.user?.name || shop.ownerProfile?.user?.email || "Unknown"}
                             </p>
                           </div>
                           <div className="flex flex-col items-end gap-1 text-right">
-                            <Badge variant="outline" className="rounded-full border-zinc-700 text-zinc-300">
+                            <Badge variant="outline" className="rounded-full">
                               {shop.status}
                             </Badge>
-                            <span className="text-xs text-zinc-400">
+                            <span className="text-xs text-zinc-500 dark:text-zinc-400">
                               {shop.subscriptionStatus}
                             </span>
                           </div>
@@ -872,19 +830,19 @@ export default function DashboardOverview() {
                     : (recent?.products ?? []).slice(0, 6).map((product) => (
                         <div
                           key={product.id}
-                          className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3"
+                          className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-800 dark:bg-black/40"
                         >
                           <div className="min-w-0">
-                            <p className="truncate text-sm font-bold text-white">
+                            <p className="truncate text-sm font-bold text-zinc-950 dark:text-white">
                               {product.name}
                             </p>
-                            <p className="mt-1 text-xs text-zinc-400">
+                            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                               Updated {formatRelativeDate(product.updatedAt)}
                             </p>
                           </div>
                           <Badge
                             variant={product.isActive ? "default" : "secondary"}
-                            className="rounded-full bg-purple-600 text-white hover:bg-purple-600"
+                            className="rounded-full"
                           >
                             {product.stock} in stock
                           </Badge>
@@ -905,16 +863,13 @@ export default function DashboardOverview() {
                   {(recent?.staff ?? []).slice(0, 6).map((member) => (
                     <div
                       key={member.id}
-                      className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3"
+                      className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-800 dark:bg-black/40"
                     >
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-bold text-white">
-                          {member.displayName ||
-                            member.user?.name ||
-                            member.user?.email ||
-                            "Staff member"}
+                        <p className="truncate text-sm font-bold text-zinc-950 dark:text-white">
+                          {member.displayName || member.user?.name || member.user?.email || "Staff member"}
                         </p>
-                        <p className="mt-1 truncate text-xs text-zinc-400">
+                        <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400">
                           {member.designation || member.user?.email || "No designation"}
                         </p>
                       </div>
@@ -925,12 +880,12 @@ export default function DashboardOverview() {
                           </Badge>
                         ) : null}
                         {member.canViewReports ? (
-                          <Badge variant="outline" className="rounded-full border-zinc-700 text-zinc-300">
+                          <Badge variant="outline" className="rounded-full">
                             Reports
                           </Badge>
                         ) : null}
                         {member.canManageInventory ? (
-                          <Badge variant="secondary" className="rounded-full bg-zinc-800 text-zinc-200">
+                          <Badge variant="secondary" className="rounded-full">
                             Inventory
                           </Badge>
                         ) : null}
@@ -956,26 +911,28 @@ export default function DashboardOverview() {
         </Card>
 
         <div className="space-y-6">
-          <Card className="overflow-hidden border-zinc-800 bg-black shadow-sm">
-            <CardHeader className="border-b border-zinc-800 bg-zinc-950/60 pb-4">
-              <CardTitle className="text-xl text-white">Low stock</CardTitle>
-              <CardDescription className="text-zinc-400">
-                Products that need attention soon.
-              </CardDescription>
+          <Card className="overflow-hidden border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-black">
+            <CardHeader className="border-b border-zinc-200/70 bg-zinc-50/60 pb-4 dark:border-zinc-800 dark:bg-black/30">
+              <CardTitle className="text-xl text-zinc-950 dark:text-white">
+                Low stock
+              </CardTitle>
+              <CardDescription>Products that need attention soon.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 p-4 md:p-6">
               {(stats?.lowStockProducts ?? []).slice(0, 6).map((product) => (
                 <div
                   key={product.id}
-                  className="rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-3"
+                  className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-800 dark:bg-black/40"
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <p className="truncate text-sm font-bold text-white">{product.name}</p>
+                    <p className="truncate text-sm font-bold text-zinc-950 dark:text-white">
+                      {product.name}
+                    </p>
                     <Badge variant="destructive" className="rounded-full">
                       {product.stock}
                     </Badge>
                   </div>
-                  <p className="mt-1 text-xs text-zinc-400">
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                     Reorder level: {product.reorderLevel}
                   </p>
                 </div>
@@ -990,15 +947,15 @@ export default function DashboardOverview() {
             </CardContent>
           </Card>
 
-          <Card className="overflow-hidden border-zinc-800 bg-black shadow-sm">
-            <CardHeader className="border-b border-zinc-800 bg-zinc-950/60 pb-4">
-              <CardTitle className="text-xl text-white">Focus area</CardTitle>
-              <CardDescription className="text-zinc-400">
-                Current operational pulse from the backend.
-              </CardDescription>
+          <Card className="overflow-hidden border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-black">
+            <CardHeader className="border-b border-zinc-200/70 bg-zinc-50/60 pb-4 dark:border-zinc-800 dark:bg-black/30">
+              <CardTitle className="text-xl text-zinc-950 dark:text-white">
+                Focus area
+              </CardTitle>
+              <CardDescription>Current operational pulse from the backend.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 p-4 md:p-6">
-              <div className="rounded-2xl bg-gradient-to-br from-purple-600 to-fuchsia-600 p-4 text-white shadow-lg">
+              <div className="rounded-2xl bg-purple-600 p-4 text-white shadow-lg">
                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/70">
                   Priority
                 </p>
@@ -1012,11 +969,11 @@ export default function DashboardOverview() {
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-black/30">
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-zinc-500">
                   Last sync
                 </p>
-                <p className="mt-2 text-sm font-bold text-white">
+                <p className="mt-2 text-sm font-bold text-zinc-950 dark:text-white">
                   {new Date().toLocaleString()}
                 </p>
               </div>
