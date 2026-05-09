@@ -23,7 +23,7 @@ export default function DashboardRoutePage({
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">{title}</h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-500 dark:text-zinc-400">{description}</p>
         </div>
-        <div className={`hidden h-16 w-16 rounded-2xl bg-gradient-to-br ${accent} md:block`} />
+        <div className={`hidden h-16 w-16 rounded-2xl bg-linear-to-br ${accent} md:block`} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">

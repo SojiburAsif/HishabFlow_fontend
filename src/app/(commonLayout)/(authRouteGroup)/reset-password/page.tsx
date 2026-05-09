@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React, { useState } from 'react';
+import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { 
@@ -11,6 +11,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { userService } from '@/services/user.service';
 import Logo from '@/components/shared/logo/logo';
+import { useState } from 'react';
 
 
 type ResetStatus = {
@@ -18,7 +19,7 @@ type ResetStatus = {
   message: string;
 } | null;
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get('email') ?? '';
@@ -180,5 +181,17 @@ export default function ResetPasswordPage() {
         </div>
       </motion.div>
     </main>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen flex items-center justify-center bg-white dark:bg-[#050505]">
+        <div className="text-zinc-500">Loading...</div>
+      </main>
+    }>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }

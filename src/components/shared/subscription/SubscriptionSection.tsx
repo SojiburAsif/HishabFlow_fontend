@@ -1,9 +1,13 @@
 "use client";
 
 import React from "react";
-import { ArrowRight, Check, Crown, Loader2, Sparkles, Star, Zap, X } from "lucide-react";
+import { ArrowRight, Check, Crown, Loader2, Sparkles, Star, Zap, X, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { subscriptionService, type SubscriptionPlan } from "@/services/subscription.service";
+import { paymentService } from "@/services/payment.service";
+import { shopService, type ShopData } from "@/services/shop.service";
+import { diagnosticService } from "@/services/diagnostic.service";
 
 type BillingToggle = "MONTHLY" | "YEARLY";
 
@@ -94,29 +98,97 @@ const getDescription = (plan: SubscriptionPlan) => {
 };
 
 export default function SubscriptionSection() {
+  const router = useRouter();
+
   const [billingCycle, setBillingCycle] = React.useState<BillingToggle>("MONTHLY");
   const [plans, setPlans] = React.useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
+  // Initialize error from URL to avoid setState in effect
+  const [error, setError] = React.useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('cancelled')) {
+      window.history.replaceState({}, '', window.location.pathname);
+      return 'Payment was cancelled. You can try again or choose a different plan.';
+    }
+    return null;
+  });
+  const [selectedPlanId, setSelectedPlanId] = React.useState<string | null>(null);
+  const [processingPayment, setProcessingPayment] = React.useState(false);
+  const [checkoutUrl, setCheckoutUrl] = React.useState<string | null>(null);
+  const [currentShop, setCurrentShop] = React.useState<ShopData | null>(null);
+  const [loadingShop, setLoadingShop] = React.useState(true);
+  const [shopFetchError, setShopFetchError] = React.useState<string | null>(null);
+
+  // Handle redirect to Stripe checkout when URL is ready
+  React.useEffect(() => {
+    if (checkoutUrl) {
+      window.location.href = checkoutUrl;
+    }
+  }, [checkoutUrl]);
 
   React.useEffect(() => {
     let mounted = true;
 
-    const loadPlans = async () => {
-      const result = await subscriptionService.getPublicPlans();
-      if (!mounted) return;
+    const loadPlansAndShop = async () => {
+      try {
+        // Load subscription plans
+        const plansResult = await subscriptionService.getPublicPlans();
+        if (mounted) {
+          if (!plansResult.success) {
+            setError(plansResult.error || "Failed to load subscription plans");
+            setPlans(defaultPlans);
+          } else {
+            setPlans(plansResult.data && plansResult.data.length > 0 ? plansResult.data : defaultPlans);
+          }
+        }
 
-      if (!result.success) {
-        setError(result.error || "Failed to load subscription plans");
-        setPlans(defaultPlans);
-      } else {
-        setPlans(result.data && result.data.length > 0 ? result.data : defaultPlans);
+        // Load current user's shop
+        const shopResult = await shopService.getMyShop();
+        if (mounted) {
+          if (shopResult.success && shopResult.data) {
+            setCurrentShop(shopResult.data);
+            setShopFetchError(null);
+          } else if (shopResult.error?.includes("Forbidden")) {
+            // Forbidden - need to diagnose why
+            console.warn("Shop fetch forbidden, checking account status:", shopResult.error);
+            
+            // Get detailed account status to provide specific guidance
+            const statusResult = await diagnosticService.getAccountStatus();
+            if (statusResult.success && statusResult.data) {
+              const accountStatus = statusResult.data;
+              if (!accountStatus.emailVerified) {
+                setShopFetchError("email-not-verified");
+              } else if (!accountStatus.hasShopOwnerProfile) {
+                setShopFetchError("no-shop-owner-profile");
+              } else if (!accountStatus.hasShop) {
+                setShopFetchError("no-shop");
+              } else {
+                setShopFetchError("unknown");
+              }
+            } else {
+              setShopFetchError("unknown");
+            }
+          } else if (shopResult.error?.includes("Not Found")) {
+            // No shop exists yet
+            console.warn("Shop not found:", shopResult.error);
+            setShopFetchError("no-shop");
+          } else if (shopResult.error) {
+            // Other errors
+            console.warn("Shop fetch error:", shopResult.error);
+            setShopFetchError("unknown");
+          }
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+          setLoadingShop(false);
+        }
       }
-
-      setLoading(false);
     };
 
-    void loadPlans();
+    void loadPlansAndShop();
 
     return () => {
       mounted = false;
@@ -132,6 +204,64 @@ export default function SubscriptionSection() {
     if (text.includes("free") || text.includes("starter")) return <Zap className="text-zinc-300 dark:text-zinc-500" size={24} />;
     if (index === 1 || text.includes("pro") || text.includes("growth")) return <Star className="text-amber-400" size={24} fill="currentColor" fillOpacity={0.2} />;
     return <Crown className="text-emerald-400" size={24} fill="currentColor" fillOpacity={0.2} />;
+  };
+
+  const handlePlanSelection = async (plan: SubscriptionPlan) => {
+    if (processingPayment || !plan.id) return;
+
+    setProcessingPayment(true);
+    setSelectedPlanId(plan.id);
+    setError(null);
+
+    try {
+      // If we couldn't fetch the shop (403 error), don't try to initiate payment
+      if (!currentShop && loadingShop === false) {
+        if (shopFetchError === "email-not-verified") {
+          setError("Please verify your email address before purchasing a subscription plan. Check your inbox for a verification link (check spam folder too).");
+        } else if (shopFetchError === "no-shop") {
+          setError("You can purchase a subscription plan to create your shop. Choose a plan below to get started!");
+        } else if (shopFetchError === "no-shop-owner-profile") {
+          setError("Your shop owner profile is missing. Please contact support to resolve this issue.");
+        } else {
+          setError("Unable to retrieve your shop information. Please verify your email and ensure your account is properly set up.");
+        }
+        setSelectedPlanId(null);
+        setProcessingPayment(false);
+        return;
+      }
+
+      if (!currentShop) {
+        setError("You need to create a shop first before purchasing a subscription plan.");
+        setSelectedPlanId(null);
+        setProcessingPayment(false);
+        return;
+      }
+
+      const result = await paymentService.initiatePayment({
+        planId: plan.id,
+        amount: Number(plan.price),
+        purpose: `${plan.name} subscription - ${plan.billingCycle}`,
+      });
+
+      if (result.success && result.data?.checkoutUrl) {
+        // Set checkout URL - the useEffect will handle the redirect
+        setCheckoutUrl(result.data.checkoutUrl);
+      } else {
+        // Check if error is due to email verification
+        if (result.error?.includes("email")) {
+          setError("Please verify your email address before purchasing a subscription plan.");
+        } else {
+          setError(result.error || "Failed to initiate payment. Please try again.");
+        }
+        setSelectedPlanId(null);
+        setProcessingPayment(false);
+      }
+    } catch (err) {
+      console.error("Payment initiation error:", err);
+      setError("An error occurred while processing your request. Please try again.");
+      setSelectedPlanId(null);
+      setProcessingPayment(false);
+    }
   };
 
   return (
@@ -184,8 +314,41 @@ export default function SubscriptionSection() {
         </div>
 
         {error ? (
-          <div className="mb-8 rounded-[2rem] border border-rose-500/30 bg-rose-500/10 px-5 py-4 text-sm text-rose-200">
+          <div className="mb-8 rounded-[2rem] border border-rose-500/30 bg-rose-500/10 px-5 py-4 text-sm text-rose-200 flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 flex-shrink-0" />
             {error}
+          </div>
+        ) : null}
+
+        {shopFetchError && !currentShop ? (
+          <div className="mb-8 rounded-[2rem] border border-yellow-500/30 bg-yellow-500/10 px-5 py-4 text-sm text-yellow-200 flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+            <div className="flex-1">
+              {shopFetchError === "email-not-verified" && (
+                <>
+                  <p className="font-semibold mb-1">Verification Required</p>
+                  <p className="text-yellow-200/80">Please verify your email address to access subscription plans and purchase features. Check your inbox for a verification link (check spam folder too).</p>
+                </>
+              )}
+              {shopFetchError === "no-shop" && (
+                <>
+                  <p className="font-semibold mb-1">Shop Not Created Yet</p>
+                  <p className="text-yellow-200/80">You can view subscription plans below and purchase one to create your shop and start selling.</p>
+                </>
+              )}
+              {shopFetchError === "no-shop-owner-profile" && (
+                <>
+                  <p className="font-semibold mb-1">Account Setup Issue</p>
+                  <p className="text-yellow-200/80">Your shop owner profile is missing. Please contact support to resolve this issue.</p>
+                </>
+              )}
+              {shopFetchError === "unknown" && (
+                <>
+                  <p className="font-semibold mb-1">Account Setup Required</p>
+                  <p className="text-yellow-200/80">Unable to retrieve your shop information. Please verify your email and ensure your account is properly set up. Contact support if the issue persists.</p>
+                </>
+              )}
+            </div>
           </div>
         ) : null}
 
@@ -239,10 +402,21 @@ export default function SubscriptionSection() {
 
                   <button
                     type="button"
-                    className={`w-full py-4 rounded-full text-xs font-black uppercase tracking-widest transition-all mb-10 flex items-center justify-center gap-2 group ${isPopular ? "bg-purple-600 text-white hover:opacity-95" : "bg-zinc-900 text-white border border-zinc-800 hover:border-purple-600/40"}`}
+                    onClick={() => handlePlanSelection(plan)}
+                    disabled={processingPayment || selectedPlanId === plan.id}
+                    className={`w-full py-4 rounded-full text-xs font-black uppercase tracking-widest transition-all mb-10 flex items-center justify-center gap-2 group disabled:opacity-60 disabled:cursor-not-allowed ${isPopular ? "bg-purple-600 text-white hover:opacity-95 disabled:hover:opacity-60" : "bg-zinc-900 text-white border border-zinc-800 hover:border-purple-600/40 disabled:border-zinc-800"}`}
                   >
-                    {isPopular ? "Choose plan" : "Start plan"}
-                    <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                    {selectedPlanId === plan.id && processingPayment ? (
+                      <>
+                        <Loader2 size={14} className="animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        {isPopular ? "Choose plan" : "Start plan"}
+                        <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                      </>
+                    )}
                   </button>
 
                   <div className="flex-1 space-y-4">

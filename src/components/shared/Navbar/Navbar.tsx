@@ -11,6 +11,7 @@ type NavbarUser = {
   role?: string;
   avatar?: string;
   shortName?: string;
+  emailVerified?: boolean;
 } | null;
 
 const readUserImage = (source: any) => source?.image || undefined;
@@ -54,6 +55,7 @@ async function getNavbarUser(): Promise<NavbarUser> {
               role,
               shortName: (name || email || 'User').split(' ')[0],
               avatar: readUserImage(userData) || readUserImage(data),
+              emailVerified: userData.emailVerified ?? data.emailVerified,
             };
           }
         }
@@ -90,6 +92,7 @@ async function getNavbarUser(): Promise<NavbarUser> {
               role,
               shortName: (name || email || 'User').split(' ')[0],
               avatar: readUserImage(userData) || readUserImage(data),
+              emailVerified: userData.emailVerified ?? data.emailVerified,
             };
           }
         }
@@ -114,6 +117,7 @@ async function getNavbarUser(): Promise<NavbarUser> {
             role,
             shortName: (name || email || 'User').split(' ')[0],
             avatar: authUser.image || authUser.user?.image || undefined,
+            emailVerified: authUser.emailVerified,
           };
         }
       } catch {

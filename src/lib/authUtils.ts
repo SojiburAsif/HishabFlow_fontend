@@ -25,6 +25,7 @@ export type DashboardUser = {
   role: RoleType;
   avatar?: string;
   shortName?: string;
+  emailVerified?: boolean;
 };
 
 const readNeedPasswordChangeValue = (userInfo: AuthUserInfo | null): boolean => {
@@ -116,5 +117,6 @@ export const buildDashboardUser = (
     role,
     shortName: (name || email || role).split(' ')[0],
     avatar: userInfo?.avatarUrl ?? userInfo?.image ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(email || role)}`,
+    emailVerified: userInfo?.emailVerified,
   };
 };

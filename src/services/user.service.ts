@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { publicEnv } from "@/lib/env";
+import { authService } from "@/services/auth.service";
 
 const API_BASE_URL = publicEnv.NEXT_PUBLIC_API_BASE_URL;
 
@@ -202,6 +203,13 @@ class UserService {
         error: errorMessage,
       };
     }
+  }
+
+  /**
+   * Resend email verification link
+   */
+  async resendVerificationEmail(email: string, name?: string): Promise<ServiceResponse> {
+    return authService.resendVerificationEmail(email, name);
   }
 }
 

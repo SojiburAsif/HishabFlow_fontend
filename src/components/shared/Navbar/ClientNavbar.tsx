@@ -17,6 +17,7 @@ import {
   User,
   Lock,
   Store,
+  MailCheck,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -35,6 +36,7 @@ type NavbarUser = {
   role?: string;
   avatar?: string;
   shortName?: string;
+  emailVerified?: boolean;
 } | null;
 
 const getInitials = (value?: string) => {
@@ -159,6 +161,7 @@ export default function ClientNavbar({ user }: { user: NavbarUser }) {
   ];
 
   const displayUser = user ?? null;
+  const showVerifyEmailAction = displayUser?.emailVerified === false;
 
   const syncProfileForm = (data?: ProfileRecord | null) => {
     const role = normalizeRole(data?.role ?? displayUser?.role) ?? Role.SHOP_OWNER;
@@ -232,6 +235,28 @@ export default function ClientNavbar({ user }: { user: NavbarUser }) {
       toast.error(`❌ ${errorMsg}`);
     } finally {
       setProfileLoading(false);
+    }
+  };
+
+  const handleResendVerificationEmail = async () => {
+    if (!displayUser?.email) {
+      toast.error("❌ Missing email address for verification");
+      return;
+    }
+
+    try {
+      const response = await userService.resendVerificationEmail(displayUser.email, displayUser.name);
+
+      if (response.success) {
+        toast.success(response.message || "Verification email sent");
+        setActiveDropdown(null);
+        setIsOpen(false);
+      } else {
+        toast.error(`❌ ${response.error || "Failed to resend verification email"}`);
+      }
+    } catch (error) {
+      console.error("Verification email error:", error);
+      toast.error("❌ Failed to resend verification email");
     }
   };
 
@@ -442,6 +467,16 @@ export default function ClientNavbar({ user }: { user: NavbarUser }) {
         <div className="flex items-center gap-3 sm:gap-4">
           <ThemeToggle />
 
+          {showVerifyEmailAction ? (
+            <button
+              type="button"
+              onClick={handleResendVerificationEmail}
+              className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-700 transition-all hover:border-emerald-400 hover:bg-emerald-100 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-300 dark:hover:bg-emerald-900/35"
+            >
+              <MailCheck size={14} /> Verify Email
+            </button>
+          ) : null}
+
           <button
             type="button"
             className="relative rounded-full p-2 text-zinc-500 transition-all hover:bg-zinc-100 hover:text-purple-500 dark:hover:bg-zinc-900"
@@ -558,6 +593,15 @@ export default function ClientNavbar({ user }: { user: NavbarUser }) {
                       >
                         <User size={14} /> Update Profile
                       </button>
+                      {showVerifyEmailAction && (
+                        <button
+                          type="button"
+                          onClick={handleResendVerificationEmail}
+                          className="flex w-full items-center gap-2.5 rounded-2xl p-2.5 text-left text-xs font-medium text-zinc-700 transition hover:bg-emerald-50 dark:text-zinc-300 dark:hover:bg-emerald-900/20"
+                        >
+                          <MailCheck size={14} /> Verify Email
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => {
@@ -628,6 +672,15 @@ export default function ClientNavbar({ user }: { user: NavbarUser }) {
                   >
                     Update Profile
                   </button>
+                  {showVerifyEmailAction && (
+                    <button
+                      type="button"
+                      onClick={handleResendVerificationEmail}
+                      className="text-left text-sm font-semibold text-zinc-700 dark:text-zinc-300"
+                    >
+                      Verify Email
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => {

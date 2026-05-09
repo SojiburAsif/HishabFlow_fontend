@@ -11,7 +11,7 @@ import {
   normalizeRole,
   type RoleType,
 } from '@/app/constants/role';
-import { readNeedPasswordChange, type AuthUserInfo } from '@/lib/authUtils';
+import { getUserInfoFromApi, readNeedPasswordChange, type AuthUserInfo } from '@/lib/authUtils';
 
 const getVerifiedTokenPayload = (verifiedToken: VerifyResult) => {
   return verifiedToken.success ? verifiedToken.data : null;
@@ -40,7 +40,15 @@ export async function proxy(request: NextRequest) {
       : { success: false, message: 'Missing access token', error: null };
 
     const verifiedPayload = getVerifiedTokenPayload(verifiedAccessToken);
-    const userInfo = null;
+    const cookieParts: string[] = [];
+    if (accessToken) cookieParts.push(`accessToken=${accessToken}`);
+    if (sessionToken) cookieParts.push(`better-auth.session_token=${sessionToken}`);
+
+    const userInfo = await getUserInfoFromApi(serverEnv.BASE_API_URL ?? '', {
+      cookieHeader: cookieParts.length ? cookieParts.join('; ') : undefined,
+      accessToken,
+      sessionToken,
+    });
 
     const isAuthenticated = getAuthStatus(verifiedAccessToken, sessionToken, userInfo);
     const userRole = getUserRole(verifiedPayload, userInfo, sessionToken ? Role.SHOP_OWNER : null);
@@ -73,7 +81,7 @@ export async function proxy(request: NextRequest) {
         return NextResponse.redirect(new URL('/login', request.url));
       }
 
-      if (verifiedPayload?.emailVerified === false) {
+      if (verifiedPayload?.emailVerified === false || userInfo?.emailVerified === false) {
         return NextResponse.next();
       }
 

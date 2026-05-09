@@ -42,11 +42,10 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const user = await getCurrentDashboardUser();
-  const role = user?.role ?? Role.SHOP_OWNER;
 
   return (
     <SidebarProvider defaultOpen>
-      <AppSidebar user={user ?? { role }} />
+      <AppSidebar user={user ?? { role: Role.SHOP_OWNER }} />
       <SidebarInset className="bg-slate-50 dark:bg-zinc-950">
         <main className="min-h-svh p-4 md:p-6">
           {children}
