@@ -90,17 +90,17 @@ export default function StaffDashboardHome() {
             })}
           </div>
 
-          <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+          <div className="grid gap-6 xl:grid-cols-2">
             <div className="rounded-[2rem] border border-zinc-800 bg-zinc-950 p-6">
-              <div className="mb-5 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <ReceiptText className="h-5 w-5 text-rose-400" />
                 <div>
                   <h2 className="text-xl font-bold text-white">Today’s Priorities</h2>
                   <p className="mt-1 text-sm text-zinc-400">Fast links to the most common staff tasks.</p>
                 </div>
-                <ReceiptText className="h-5 w-5 text-rose-400" />
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 {[
                   { href: "/dashboard/orders", title: "Orders", text: "Review pending and recent orders", accent: "hover:border-violet-500/60 hover:bg-violet-500/10" },
                   { href: "/dashboard/products", title: "Products", text: "Check catalog and product status", accent: "hover:border-sky-500/60 hover:bg-sky-500/10" },

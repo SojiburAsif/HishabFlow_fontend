@@ -1,11 +1,21 @@
 'use client';
 
 import React from 'react';
-import DashboardRoutePage from "@/components/shared/dashboard/DashboardRoutePage";
+import DashboardRoutePage from '@/components/shared/dashboard/DashboardRoutePage';
 import { Search, Eye, Printer, AlertCircle } from 'lucide-react';
-import { publicEnv } from "@/lib/env";
+import { publicEnv } from '@/lib/env';
 
 const API_BASE_URL = publicEnv.NEXT_PUBLIC_API_BASE_URL;
+
+type OrderItem = {
+  id: string;
+  quantity: number;
+  product?: {
+    id: string;
+    name: string;
+    sku?: string | null;
+  } | null;
+};
 
 interface Order {
   id: string;
@@ -13,9 +23,39 @@ interface Order {
   date: string;
   customerName: string;
   total: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  items: number;
+  status: 'paid' | 'processing' | 'draft' | 'void' | 'partially_paid';
+  items: OrderItem[];
 }
+
+type OrderResponse = {
+  id: string;
+  invoiceNumber?: string;
+  createdAt?: string;
+  customerName?: string | null;
+  grandTotal?: string | number | null;
+  status?: string;
+  items?: OrderItem[];
+};
+
+const normalizeStatus = (value: string | undefined): Order['status'] => {
+  const normalized = String(value || 'PAID').toLowerCase();
+  if (normalized === 'paid') return 'paid';
+  if (normalized === 'processing') return 'processing';
+  if (normalized === 'draft') return 'draft';
+  if (normalized === 'void') return 'void';
+  if (normalized === 'partially_paid') return 'partially_paid';
+  return 'paid';
+};
+
+const mapOrder = (order: OrderResponse): Order => ({
+  id: order.id,
+  orderNumber: order.invoiceNumber || order.id,
+  date: order.createdAt || new Date().toISOString(),
+  customerName: order.customerName || 'Walk-in Customer',
+  total: Number(order.grandTotal || 0),
+  status: normalizeStatus(order.status),
+  items: order.items || [],
+});
 
 export default function DashboardOrdersPage() {
   const [orders, setOrders] = React.useState<Order[]>([]);
@@ -37,7 +77,7 @@ export default function DashboardOrdersPage() {
         if (!response.ok) throw new Error('Failed to fetch orders');
         const data = await response.json();
         const orderList = Array.isArray(data) ? data : data.data || [];
-        setOrders(orderList);
+        setOrders((orderList as OrderResponse[]).map(mapOrder));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load orders');
         setOrders([]);
@@ -54,7 +94,8 @@ export default function DashboardOrdersPage() {
     if (searchQuery) {
       filtered = filtered.filter(
         o => o.orderNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-             o.customerName?.toLowerCase().includes(searchQuery.toLowerCase())
+             o.customerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+             o.items.some((item) => item.product?.name?.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
     if (statusFilter !== 'all') {
@@ -65,16 +106,16 @@ export default function DashboardOrdersPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-900/30 text-yellow-300 border-yellow-700';
       case 'processing': return 'bg-blue-900/30 text-blue-300 border-blue-700';
-      case 'shipped': return 'bg-purple-900/30 text-purple-300 border-purple-700';
-      case 'delivered': return 'bg-green-900/30 text-green-300 border-green-700';
-      case 'cancelled': return 'bg-red-900/30 text-red-300 border-red-700';
+      case 'draft': return 'bg-yellow-900/30 text-yellow-300 border-yellow-700';
+      case 'void': return 'bg-red-900/30 text-red-300 border-red-700';
+      case 'partially_paid': return 'bg-purple-900/30 text-purple-300 border-purple-700';
+      case 'paid': return 'bg-green-900/30 text-green-300 border-green-700';
       default: return 'bg-zinc-800 text-zinc-300';
     }
   };
 
-  const pendingCount = orders.filter(o => o.status === 'pending').length;
+  const pendingCount = orders.filter(o => o.status !== 'paid').length;
 
   return (
     <>
@@ -91,8 +132,8 @@ export default function DashboardOrdersPage() {
             <div className="flex items-center gap-3">
               <AlertCircle className="h-5 w-5 text-amber-500" />
               <div>
-                <p className="font-semibold text-amber-300">{pendingCount} pending orders</p>
-                <p className="text-sm text-amber-200">Orders awaiting processing</p>
+                <p className="font-semibold text-amber-300">{pendingCount} orders need attention</p>
+                <p className="text-sm text-amber-200">These invoices are not marked as paid yet</p>
               </div>
             </div>
           </div>
@@ -118,11 +159,11 @@ export default function DashboardOrdersPage() {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="rounded-lg border border-zinc-800 bg-black/50 px-4 py-2 text-sm text-white focus:border-amber-500 focus:outline-none">
               <option value="all">All Status</option>
-              <option value="pending">Pending</option>
+              <option value="paid">Paid</option>
               <option value="processing">Processing</option>
-              <option value="shipped">Shipped</option>
-              <option value="delivered">Delivered</option>
-              <option value="cancelled">Cancelled</option>
+              <option value="draft">Draft</option>
+              <option value="partially_paid">Partially Paid</option>
+              <option value="void">Void</option>
             </select>
           </div>
         </div>
@@ -135,6 +176,7 @@ export default function DashboardOrdersPage() {
                 <tr className="border-b border-zinc-800 bg-black/50">
                   <th className="px-6 py-4 text-left font-semibold text-zinc-300">Order #</th>
                   <th className="px-6 py-4 text-left font-semibold text-zinc-300">Customer</th>
+                  <th className="px-6 py-4 text-left font-semibold text-zinc-300">Products</th>
                   <th className="px-6 py-4 text-left font-semibold text-zinc-300">Items</th>
                   <th className="px-6 py-4 text-left font-semibold text-zinc-300">Total</th>
                   <th className="px-6 py-4 text-left font-semibold text-zinc-300">Status</th>
@@ -145,22 +187,34 @@ export default function DashboardOrdersPage() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-zinc-400">Loading orders...</td>
+                    <td colSpan={8} className="px-6 py-8 text-center text-zinc-400">Loading orders...</td>
                   </tr>
                 ) : error ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-red-400">{error}</td>
+                    <td colSpan={8} className="px-6 py-8 text-center text-red-400">{error}</td>
                   </tr>
                 ) : filteredOrders.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-zinc-400">No orders found</td>
+                    <td colSpan={8} className="px-6 py-8 text-center text-zinc-400">No orders found</td>
                   </tr>
                 ) : (
                   filteredOrders.map((order) => (
                     <tr key={order.id} className="border-b border-zinc-800 hover:bg-black/50 transition">
                       <td className="px-6 py-4 font-mono text-purple-400">{order.orderNumber}</td>
                       <td className="px-6 py-4 text-white">{order.customerName}</td>
-                      <td className="px-6 py-4 text-white">{order.items} items</td>
+                      <td className="px-6 py-4 text-zinc-300">
+                        <div className="max-w-[22rem] space-y-1">
+                          {order.items.slice(0, 3).map((item) => (
+                            <p key={item.id} className="truncate text-sm">
+                              {item.product?.name || item.product?.sku || item.product?.id || 'Unknown product'} x{item.quantity}
+                            </p>
+                          ))}
+                          {order.items.length > 3 ? (
+                            <p className="text-xs text-zinc-500">+{order.items.length - 3} more</p>
+                          ) : null}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-white">{order.items.reduce((sum, item) => sum + item.quantity, 0)} items</td>
                       <td className="px-6 py-4 font-semibold text-white">${order.total?.toFixed(2) || '0.00'}</td>
                       <td className="px-6 py-4">
                         <span className={`inline-block rounded-full px-3 py-1 border text-xs font-medium capitalize ${getStatusColor(order.status)}`}>

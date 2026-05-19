@@ -5,13 +5,14 @@ const API_BASE_URL = publicEnv.NEXT_PUBLIC_API_BASE_URL;
 
 export interface InitiatePaymentPayload {
 	planId: string;
+	shopId?: string;
 	amount: number;
 	purpose: string;
 }
 
 export interface ConfirmPaymentPayload {
 	paymentReference: string;
-	planId: string;
+	planId?: string;
 }
 
 export interface PaymentSession {

@@ -12,8 +12,35 @@ export interface ShopData {
 	status: string;
 	subscriptionStatus: string;
 	currentPlanId?: string;
+	subscriptionStartsAt?: string;
+	currentPlan?: {
+		id?: string;
+		code?: string;
+		name?: string;
+		billingCycle?: string;
+		price?: number | string;
+		currencyCode?: string | null;
+		durationDays?: number;
+		maxStaff?: number | null;
+		maxProducts?: number | null;
+		maxInvoices?: number | null;
+		maxReports?: boolean | null;
+		maxDiscounts?: number | null;
+	} | null;
 	subscriptionEndsAt?: string;
 	trialEndsAt?: string;
+	subscriptions?: Array<{
+		id: string;
+		status?: string;
+		startsAt?: string;
+		endsAt?: string;
+		paymentReference?: string | null;
+		transactionId?: string | null;
+		plan?: {
+			name?: string;
+			code?: string;
+		} | null;
+	}> | null;
 }
 
 export interface UserProfile {

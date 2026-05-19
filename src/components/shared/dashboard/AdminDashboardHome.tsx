@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import DashboardRoutePage from "@/components/shared/dashboard/DashboardRoutePage";
-import { publicEnv } from "@/lib/env";
+import { dashboardService, type DashboardStatsResponse } from "@/services/Dashboard.service";
 import { BarChart3, CreditCard, Loader2, TrendingUp, Users } from "lucide-react";
 
 type AdminStatsOverview = {
@@ -13,24 +14,16 @@ type AdminStatsOverview = {
   staff?: number;
 };
 
-const fetchAdminOverview = async (): Promise<AdminStatsOverview | null> => {
-  try {
-    const response = await fetch(`${publicEnv.NEXT_PUBLIC_API_BASE_URL}/dashboard/stats`, {
-      method: "GET",
-      credentials: "include",
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const payload = await response.json();
-    return payload?.data?.overview ?? null;
-  } catch {
-    return null;
-  }
-};
+const toOverview = (stats: DashboardStatsResponse | null): AdminStatsOverview | null =>
+  stats?.overview?.commerce || stats?.overview?.shops || stats?.overview?.users
+    ? {
+        users: stats?.overview?.users,
+        shops: stats?.overview?.shops,
+        commerce: stats?.overview?.commerce,
+        subscriptions: stats?.overview?.subscriptions,
+        staff: stats?.overview?.staff,
+      }
+    : null;
 
 export default function AdminDashboardHome() {
   const [overview, setOverview] = useState<AdminStatsOverview | null>(null);
@@ -40,9 +33,9 @@ export default function AdminDashboardHome() {
     let mounted = true;
 
     const load = async () => {
-      const data = await fetchAdminOverview();
+      const response = await dashboardService.getDashboardStats();
       if (!mounted) return;
-      setOverview(data);
+      setOverview(response.success ? toOverview(response.data ?? null) : null);
       setLoading(false);
     };
 
@@ -97,14 +90,14 @@ export default function AdminDashboardHome() {
             { href: "/dashboard/admin/payments", title: "Payments", text: "Review all payment records" },
             { href: "/dashboard/admin/subscriptions", title: "Subscriptions", text: "Manage subscription plans" },
           ].map((item) => (
-            <a
+            <Link
               key={item.href}
               href={item.href}
               className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5 transition-all hover:border-blue-500/60 hover:bg-blue-500/10"
             >
               <h3 className="text-base font-semibold text-white">{item.title}</h3>
               <p className="mt-1 text-sm text-zinc-400">{item.text}</p>
-            </a>
+            </Link>
           ))}
         </div>
       </div>

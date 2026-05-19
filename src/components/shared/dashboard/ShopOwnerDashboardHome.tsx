@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import DashboardRoutePage from "@/components/shared/dashboard/DashboardRoutePage";
 import { shopService, type ShopData } from "@/services/shop.service";
 import { dashboardService, type DashboardStatsResponse } from "@/services/Dashboard.service";
@@ -61,39 +62,31 @@ export default function ShopOwnerDashboardHome() {
       const shopData = shopResult.data;
       setShop(shopData);
 
+      const endDateValue = shopData.subscriptionEndsAt || shopData.trialEndsAt || null;
+      const endDate = endDateValue ? new Date(endDateValue) : null;
+      const daysRemaining = endDate ? Math.max(0, Math.ceil((endDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))) : 0;
+      const normalizedStatus = String(shopData.subscriptionStatus || "").toUpperCase();
+      const isExpired = daysRemaining <= 0 || normalizedStatus === "EXPIRED" || normalizedStatus === "CANCELED" || normalizedStatus === "SUSPENDED";
+      const isTrial = normalizedStatus === "TRIAL" || !shopData.currentPlanId;
+      const status: SubscriptionInfo["status"] = isExpired ? "expired" : isTrial ? "trial" : "active";
+
+      setSubscription({
+        planName: shopData.currentPlan?.name || (status === "trial" ? "Free Trial" : "Active Subscription"),
+        billingCycle: shopData.currentPlan?.billingCycle || (status === "trial" ? "trial" : "monthly"),
+        price: shopData.currentPlan ? `${shopData.currentPlan.price ?? "0"} ${shopData.currentPlan.currencyCode || "USD"}` : "Free",
+        status,
+        startDate: new Date(shopData.subscriptionStartsAt || shopData.trialEndsAt || shopData.subscriptionEndsAt || new Date().toISOString()).toLocaleDateString(),
+        endDate: endDate ? endDate.toLocaleDateString() : "No expiry date",
+        daysRemaining,
+        features: {
+          maxStaff: shopData.currentPlan?.maxStaff ?? undefined,
+          maxProducts: shopData.currentPlan?.maxProducts ?? undefined,
+          maxInvoices: shopData.currentPlan?.maxInvoices ?? undefined,
+        },
+      });
+
       if (statsResult.success && statsResult.data) {
         setDashboardStats(statsResult.data);
-      }
-
-      const isTrialShop = shopData.subscriptionStatus === "TRIAL" && !shopData.currentPlanId;
-      const endDate = shopData.subscriptionEndsAt || shopData.trialEndsAt;
-      
-      if (endDate) {
-        const endDateObj = new Date(endDate);
-        const now = new Date();
-        const daysRemaining = Math.ceil((endDateObj.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-        
-        let status: SubscriptionInfo["status"] = "active";
-        if (daysRemaining <= 0) {
-          status = "expired";
-        } else if (isTrialShop || daysRemaining <= 7) {
-          status = "trial";
-        }
-
-        setSubscription({
-          planName: isTrialShop ? "Free Trial" : shopData.currentPlanId ? "Active Plan" : "Free Plan",
-          billingCycle: "monthly",
-          price: isTrialShop ? "Free" : shopData.currentPlanId ? "$XX" : "Free",
-          status,
-          startDate: new Date().toLocaleDateString(),
-          endDate: endDateObj.toLocaleDateString(),
-          daysRemaining,
-          features: {
-            maxStaff: 10,
-            maxProducts: 1000,
-            maxInvoices: 5000,
-          },
-        });
       }
 
       setError(null);
@@ -156,9 +149,9 @@ export default function ShopOwnerDashboardHome() {
           <div>
             <h3 className="mb-1 font-semibold text-rose-200">Unable to Load Shop Data</h3>
             <p className="text-sm text-rose-200/80">{error}</p>
-            <a href="/dashboard/subscriptions" className="mt-3 inline-block rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-rose-700">
+            <Link href="/dashboard/subscriptions" className="mt-3 inline-block rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-rose-700">
               View Subscription Plans
-            </a>
+            </Link>
           </div>
         </div>
       ) : (
@@ -232,9 +225,9 @@ export default function ShopOwnerDashboardHome() {
               </div>
 
               {(subscription.status === "trial" || subscription.status === "expired") && (
-                <a href="/dashboard/subscriptions" className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-3 font-semibold text-white transition-all hover:from-purple-700 hover:to-pink-700">
+                <Link href="/dashboard/subscriptions" className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-3 font-semibold text-white transition-all hover:from-purple-700 hover:to-pink-700">
                   {subscription.status === "expired" ? "Renew Subscription" : "Upgrade Plan"}
-                </a>
+                </Link>
               )}
             </div>
           ) : null}
@@ -242,26 +235,26 @@ export default function ShopOwnerDashboardHome() {
           <div className="mt-8">
             <h3 className="mb-4 text-lg font-bold text-white">Quick Actions</h3>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <a href="/dashboard/orders" className="group rounded-[1.5rem] border border-zinc-800 bg-zinc-950 p-6 transition-all hover:border-purple-500 hover:bg-purple-500/10">
+              <Link href="/dashboard/orders" className="group rounded-[1.5rem] border border-zinc-800 bg-zinc-950 p-6 transition-all hover:border-purple-500 hover:bg-purple-500/10">
                 <ShoppingCart className="mb-3 h-6 w-6 text-purple-400 transition-transform group-hover:scale-110" />
                 <h4 className="font-semibold text-white">View Orders</h4>
                 <p className="mt-1 text-xs text-zinc-400">Manage your recent orders</p>
-              </a>
-              <a href="/dashboard/products" className="group rounded-[1.5rem] border border-zinc-800 bg-zinc-950 p-6 transition-all hover:border-blue-500 hover:bg-blue-500/10">
+              </Link>
+              <Link href="/dashboard/products" className="group rounded-[1.5rem] border border-zinc-800 bg-zinc-950 p-6 transition-all hover:border-blue-500 hover:bg-blue-500/10">
                 <Package className="mb-3 h-6 w-6 text-blue-400 transition-transform group-hover:scale-110" />
                 <h4 className="font-semibold text-white">View Products</h4>
                 <p className="mt-1 text-xs text-zinc-400">Manage your inventory</p>
-              </a>
-              <a href="/dashboard/team" className="group rounded-[1.5rem] border border-zinc-800 bg-zinc-950 p-6 transition-all hover:border-pink-500 hover:bg-pink-500/10">
+              </Link>
+              <Link href="/dashboard/team" className="group rounded-[1.5rem] border border-zinc-800 bg-zinc-950 p-6 transition-all hover:border-pink-500 hover:bg-pink-500/10">
                 <Users className="mb-3 h-6 w-6 text-pink-400 transition-transform group-hover:scale-110" />
                 <h4 className="font-semibold text-white">Team Members</h4>
                 <p className="mt-1 text-xs text-zinc-400">Manage your staff</p>
-              </a>
-              <a href="/dashboard/reports" className="group rounded-[1.5rem] border border-zinc-800 bg-zinc-950 p-6 transition-all hover:border-green-500 hover:bg-green-500/10">
+              </Link>
+              <Link href="/dashboard/reports" className="group rounded-[1.5rem] border border-zinc-800 bg-zinc-950 p-6 transition-all hover:border-green-500 hover:bg-green-500/10">
                 <TrendingUp className="mb-3 h-6 w-6 text-green-400 transition-transform group-hover:scale-110" />
                 <h4 className="font-semibold text-white">View Reports</h4>
                 <p className="mt-1 text-xs text-zinc-400">Check business analytics</p>
-              </a>
+              </Link>
             </div>
           </div>
         </>

@@ -1,5 +1,0 @@
-import ShopOwnerDashboardHome from "@/components/shared/dashboard/ShopOwnerDashboardHome";
-
-export default function ShopOwnerDashboard() {
-  return <ShopOwnerDashboardHome />;
-}

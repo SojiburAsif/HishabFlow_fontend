@@ -208,6 +208,10 @@ export default function SubscriptionSection() {
 
   const handlePlanSelection = async (plan: SubscriptionPlan) => {
     if (processingPayment || !plan.id) return;
+    if (!currentShop?.id) {
+      setError("Shop information is still loading. Please wait and try again.");
+      return;
+    }
 
     setProcessingPayment(true);
     setSelectedPlanId(plan.id);
@@ -239,6 +243,7 @@ export default function SubscriptionSection() {
 
       const result = await paymentService.initiatePayment({
         planId: plan.id,
+        shopId: currentShop.id,
         amount: Number(plan.price),
         purpose: `${plan.name} subscription - ${plan.billingCycle}`,
       });

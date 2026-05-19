@@ -1,5 +1,0 @@
-import AdminDashboardHome from "@/components/shared/dashboard/AdminDashboardHome";
-
-export default function SuperAdminPage() {
-  return <AdminDashboardHome />;
-}

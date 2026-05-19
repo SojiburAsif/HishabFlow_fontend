@@ -1,220 +1,230 @@
 'use client';
 
-import React from 'react';
-import DashboardRoutePage from "@/components/shared/dashboard/DashboardRoutePage";
-import { Plus, Package, Search, MoreVertical, Edit2, Trash2, Eye, AlertCircle } from 'lucide-react';
-import { publicEnv } from "@/lib/env";
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Button, Spinner } from '@heroui/react';
+import { Plus } from 'lucide-react';
+import { motion } from 'framer-motion';
+import ProductTable, { ProductTableRow } from '@/components/module/product/ProductTable';
+import ProductForm from '@/components/module/product/ProductForm';
+import { CreateProductInput } from '@/zod/productSchema';
+import { productService, type ProductRecord } from '@/services/product.service';
 
-const API_BASE_URL = publicEnv.NEXT_PUBLIC_API_BASE_URL;
-
-interface Product {
+interface Product extends ProductRecord {
   id: string;
-  name: string;
-  price: number;
-  stock: number;
-  category: string;
-  sku: string;
-  status: 'active' | 'inactive';
-  image?: string;
 }
 
-export default function DashboardProductsPage() {
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const [products, setProducts] = React.useState<Product[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
-  const [filteredProducts, setFilteredProducts] = React.useState<Product[]>([]);
-  const [selectedCategory, setSelectedCategory] = React.useState('all');
+const statusFromStock = (stock: number): ProductTableRow['status'] => {
+  if (stock <= 0) {
+    return 'out-of-stock';
+  }
+  if (stock < 10) {
+    return 'low-stock';
+  }
+  return 'in-stock';
+};
 
-  React.useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/product`, {
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-        });
+const toTableRow = (product: Product): ProductTableRow => {
+  return {
+    id: product.id,
+    name: product.name,
+    sku: product.sku ?? '—',
+    category: product.categoryId ?? 'Uncategorized',
+    price: Number(product.sellingPrice ?? 0),
+    quantity: product.stock,
+    status: statusFromStock(product.stock),
+  };
+};
 
-        if (!response.ok) throw new Error('Failed to fetch products');
-        const data = await response.json();
-        const productList = Array.isArray(data) ? data : data.data || [];
-        setProducts(productList);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load products');
-        setProducts([]);
-      } finally {
-        setLoading(false);
+const toFormValues = (product: Product): Product & CreateProductInput => ({
+  ...product,
+  sku: product.sku ?? '',
+  description: product.description ?? '',
+  stock: product.stock,
+  reorderLevel: product.reorderLevel,
+  purchasePrice: String(product.purchasePrice ?? ''),
+  sellingPrice: String(product.sellingPrice ?? ''),
+  isActive: product.isActive,
+});
+
+const ProductsPage: React.FC = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | undefined>();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchProducts = useCallback(async () => {
+    try {
+      const response = await productService.getProducts();
+
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to load products');
       }
-    };
 
-    fetchProducts();
+      const list = (response.data ?? []) as Product[];
+      setProducts(list);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load products. Please try again later.');
+    } finally {
+      setIsInitialLoading(false);
+    }
   }, []);
 
-  React.useEffect(() => {
-    let filtered = products;
-    if (searchQuery) {
-      filtered = filtered.filter(
-        p => p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-             p.sku?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(p => p.category === selectedCategory);
-    }
-    setFilteredProducts(filtered);
-  }, [products, searchQuery, selectedCategory]);
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
-  const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
-  const lowStockCount = products.filter(p => p.stock && p.stock < 10).length;
+  const handleAddProduct = useCallback(() => {
+    setSelectedProduct(undefined);
+    setIsFormOpen(true);
+  }, []);
+
+  const handleEditProduct = useCallback((product: Product) => {
+    setSelectedProduct(product);
+    setIsFormOpen(true);
+  }, []);
+
+  const handleDeleteProduct = useCallback(async (productId: string) => {
+    try {
+      setIsLoading(true);
+      const response = await productService.deactivateProduct(productId);
+
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to deactivate product');
+      }
+
+      await fetchProducts();
+    } catch (err) {
+      console.error('Error deleting product:', err);
+      setError(err instanceof Error ? err.message : 'Failed to deactivate product');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchProducts]);
+
+  const handleFormSubmit = async (data: CreateProductInput) => {
+    try {
+      setIsLoading(true);
+
+      const response = selectedProduct?.id
+        ? await productService.updateProduct(selectedProduct.id, data)
+        : await productService.createProduct(data);
+
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to save product');
+      }
+
+      await fetchProducts();
+      setIsFormOpen(false);
+      setSelectedProduct(undefined);
+    } catch (error) {
+      console.error('Error submitting product:', error);
+      setError(error instanceof Error ? error.message : 'Failed to save product');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const tableRows = useMemo(
+    () => products.filter((product) => product.isActive !== false).map(toTableRow),
+    [products]
+  );
+
+  const formInitialData = selectedProduct ? toFormValues(selectedProduct) : undefined;
 
   return (
-    <>
-      <DashboardRoutePage
-        title="Products"
-        description="Manage product catalog, pricing, and inventory from this page."
-        badge="Catalog"
-        accent="from-violet-500 to-fuchsia-500"
+    <div className="space-y-6">
+      {/* Page Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
+      >
+        <div>
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">Products</h1>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+            Manage your product inventory and pricing
+          </p>
+        </div>
+
+        <Button
+          onPress={handleAddProduct}
+          type="button"
+          className="bg-purple-600 hover:bg-purple-700 text-white font-semibold"
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          Add Product
+        </Button>
+      </motion.div>
+
+      {isInitialLoading && (
+        <div className="rounded-lg border border-zinc-200/50 dark:border-zinc-800/50 p-8 bg-white/50 dark:bg-zinc-900/50 flex items-center justify-center">
+          <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-300">
+            <Spinner color="accent" />
+            <span>Loading products...</span>
+          </div>
+        </div>
+      )}
+
+      {!isInitialLoading && error && (
+        <div className="rounded-lg border border-red-300/60 dark:border-red-700/60 p-4 bg-red-50/70 dark:bg-red-900/20 text-red-700 dark:text-red-300">
+          {error}
+        </div>
+      )}
+
+      {!isInitialLoading && !error && (
+        <ProductTable
+          products={tableRows}
+          onEdit={(row) => {
+            const selected = products.find((p) => p.id === row.id);
+            if (selected) {
+              handleEditProduct(selected);
+            }
+          }}
+          onDelete={handleDeleteProduct}
+        />
+      )}
+
+      {/* Product Form Modal */}
+      <ProductForm
+        isOpen={isFormOpen}
+        onClose={() => {
+          setIsFormOpen(false);
+          setSelectedProduct(undefined);
+        }}
+        onSubmit={handleFormSubmit}
+        initialData={formInitialData}
+        isLoading={isLoading}
       />
 
-      <div className="mt-8 space-y-6">
-        {/* Header with Add Product Button */}
-        <div className="rounded-[2rem] border border-zinc-800 bg-zinc-950 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-bold text-white">Product Inventory</h3>
-              <p className="mt-1 text-sm text-zinc-400">Manage all your products, pricing, and stock levels</p>
-            </div>
-            <button className="inline-flex items-center gap-2 rounded-lg bg-linear-to-r from-purple-600 to-pink-600 px-6 py-3 font-semibold text-white transition-all hover:shadow-lg hover:shadow-purple-500/50">
-              <Plus className="h-4 w-4" />
-              Add Product
-            </button>
-          </div>
-        </div>
-
-        {/* Low Stock Alert */}
-        {lowStockCount > 0 && (
-          <div className="rounded-[2rem] border-l-4 border-l-amber-500 border border-zinc-800 bg-amber-950/30 p-4">
-            <div className="flex items-center gap-3">
-              <AlertCircle className="h-5 w-5 text-amber-500" />
-              <div>
-                <p className="font-semibold text-amber-300">{lowStockCount} products with low stock</p>
-                <p className="text-sm text-amber-200">Consider reordering items running low</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Search and Filter Bar */}
-        <div className="rounded-[2rem] border border-zinc-800 bg-zinc-950 p-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-                <input
-                  type="text"
-                  placeholder="Search products by name or SKU..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-800 bg-black/50 pl-10 pr-4 py-2 text-sm text-white placeholder-zinc-500 focus:border-purple-500 focus:outline-none"
-                />
-              </div>
-            </div>
-            <select 
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="rounded-lg border border-zinc-800 bg-black/50 px-4 py-2 text-sm text-white focus:border-purple-500 focus:outline-none">
-              <option value="all">All Categories</option>
-              {categories.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Products Table */}
-        <div className="rounded-[2rem] border border-zinc-800 bg-zinc-950 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-zinc-800 bg-black/50">
-                  <th className="px-6 py-4 text-left font-semibold text-zinc-300">Product Name</th>
-                  <th className="px-6 py-4 text-left font-semibold text-zinc-300">SKU</th>
-                  <th className="px-6 py-4 text-left font-semibold text-zinc-300">Category</th>
-                  <th className="px-6 py-4 text-right font-semibold text-zinc-300">Price</th>
-                  <th className="px-6 py-4 text-center font-semibold text-zinc-300">Stock</th>
-                  <th className="px-6 py-4 text-left font-semibold text-zinc-300">Status</th>
-                  <th className="px-6 py-4 text-right font-semibold text-zinc-300">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-zinc-400">Loading products...</td>
-                  </tr>
-                ) : error ? (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-red-400">{error}</td>
-                  </tr>
-                ) : filteredProducts.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-12">
-                      <div className="flex flex-col items-center justify-center text-center">
-                        <div className="mb-4 rounded-full bg-zinc-900 p-4">
-                          <Package className="h-8 w-8 text-zinc-600" />
-                        </div>
-                        <h3 className="mb-2 text-lg font-bold text-white">No Products Found</h3>
-                        <p className="text-sm text-zinc-400">Try adjusting your search or filters</p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredProducts.map((product) => (
-                    <tr key={product.id} className="border-b border-zinc-800 hover:bg-black/50 transition">
-                      <td className="px-6 py-4 font-medium text-white">{product.name}</td>
-                      <td className="px-6 py-4 font-mono text-zinc-400">{product.sku}</td>
-                      <td className="px-6 py-4 text-zinc-400">{product.category || 'Uncategorized'}</td>
-                      <td className="px-6 py-4 text-right font-semibold text-white">${product.price?.toFixed(2) || '0.00'}</td>
-                      <td className="px-6 py-4 text-center">
-                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                          product.stock === 0
-                            ? 'bg-red-900/30 text-red-300'
-                            : product.stock < 10
-                            ? 'bg-amber-900/30 text-amber-300'
-                            : 'bg-green-900/30 text-green-300'
-                        }`}>
-                          {product.stock} units
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium capitalize ${
-                          product.status === 'active'
-                            ? 'bg-emerald-900/30 text-emerald-300'
-                            : 'bg-zinc-800 text-zinc-400'
-                        }`}>
-                          {product.status || 'inactive'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex justify-end gap-2">
-                          <button className="p-2 hover:bg-black/50 rounded-lg transition text-zinc-400 hover:text-white" title="View">
-                            <Eye className="h-4 w-4" />
-                          </button>
-                          <button className="p-2 hover:bg-black/50 rounded-lg transition text-zinc-400 hover:text-white" title="Edit">
-                            <Edit2 className="h-4 w-4" />
-                          </button>
-                          <button className="p-2 hover:bg-black/50 rounded-lg transition text-zinc-400 hover:text-red-400" title="Delete">
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </>
+      {/* Empty State */}
+      {!isInitialLoading && !error && products.length === 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="text-center py-12"
+        >
+          <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50 mb-2">No products yet</h3>
+          <p className="text-zinc-600 dark:text-zinc-400 mb-4">Get started by adding your first product</p>
+          <Button
+            onPress={handleAddProduct}
+            type="button"
+            className="bg-purple-600 hover:bg-purple-700 text-white font-semibold"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add Your First Product
+          </Button>
+        </motion.div>
+      )}
+    </div>
   );
-}
+};
+
+export default ProductsPage;
+
+

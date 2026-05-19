@@ -88,6 +88,33 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL(getDefaultDashboardRoute(userRole), request.url));
     }
 
+    const isAdminDashboardRoute = pathname === '/dashboard/admin' || pathname.startsWith('/dashboard/admin/');
+    const isOwnerSubscriptionsRoute = pathname === '/dashboard/subscriptions' || pathname.startsWith('/dashboard/subscriptions/');
+
+    if (isAdminDashboardRoute) {
+      if (!isAuthenticated) {
+        return NextResponse.redirect(new URL('/login', request.url));
+      }
+
+      if (userRole !== Role.SUPER_ADMIN) {
+        return NextResponse.redirect(new URL('/dashboard/subscriptions', request.url));
+      }
+
+      return NextResponse.next();
+    }
+
+    if (isOwnerSubscriptionsRoute) {
+      if (!isAuthenticated) {
+        return NextResponse.redirect(new URL('/login', request.url));
+      }
+
+      if (userRole === Role.SUPER_ADMIN) {
+        return NextResponse.redirect(new URL('/dashboard/admin/subscriptions', request.url));
+      }
+
+      return NextResponse.next();
+    }
+
     if (routeOwner) {
       if (!isAuthenticated) {
         return NextResponse.redirect(new URL('/login', request.url));

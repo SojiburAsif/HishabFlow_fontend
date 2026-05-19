@@ -37,7 +37,7 @@ export default function DashboardRoutePage({
         </div>
         <div className="rounded-2xl bg-slate-50 p-4 dark:bg-black">
           <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-400">Action</p>
-          <Link href="/dashboard/overview" className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-emerald-600 hover:text-emerald-500">
+          <Link href="/dashboard" className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-emerald-600 hover:text-emerald-500">
             Back to overview <ArrowRight size={14} />
           </Link>
         </div>
