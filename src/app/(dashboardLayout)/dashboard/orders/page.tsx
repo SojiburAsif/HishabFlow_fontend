@@ -63,7 +63,6 @@ export default function DashboardOrdersPage() {
   const [error, setError] = React.useState<string | null>(null);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [statusFilter, setStatusFilter] = React.useState('all');
-  const [filteredOrders, setFilteredOrders] = React.useState<Order[]>([]);
 
   React.useEffect(() => {
     const fetchOrders = async () => {
@@ -89,19 +88,20 @@ export default function DashboardOrdersPage() {
     fetchOrders();
   }, []);
 
-  React.useEffect(() => {
+  const filteredOrders = React.useMemo(() => {
     let filtered = orders;
     if (searchQuery) {
+      const normalizedQuery = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        o => o.orderNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-             o.customerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-             o.items.some((item) => item.product?.name?.toLowerCase().includes(searchQuery.toLowerCase()))
+        o => o.orderNumber?.toLowerCase().includes(normalizedQuery) ||
+             o.customerName?.toLowerCase().includes(normalizedQuery) ||
+             o.items.some((item) => item.product?.name?.toLowerCase().includes(normalizedQuery))
       );
     }
     if (statusFilter !== 'all') {
       filtered = filtered.filter(o => o.status === statusFilter);
     }
-    setFilteredOrders(filtered);
+    return filtered;
   }, [orders, searchQuery, statusFilter]);
 
   const getStatusColor = (status: string) => {

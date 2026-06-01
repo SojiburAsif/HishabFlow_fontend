@@ -3,6 +3,14 @@ import type { CreateProductInput, UpdateProductInput } from '@/zod/productSchema
 
 const API_BASE_URL = publicEnv.NEXT_PUBLIC_API_BASE_URL;
 
+const readAccessToken = () => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  return window.localStorage.getItem('accessToken');
+};
+
 export interface ProductRecord {
   id: string;
   shopId?: string;
@@ -28,10 +36,12 @@ export interface ServiceResponse<T = unknown> {
 
 const requestJson = async <T>(path: string, init?: RequestInit): Promise<ServiceResponse<T>> => {
   try {
+    const accessToken = readAccessToken();
     const response = await fetch(`${API_BASE_URL}${path}`, {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         ...(init?.headers ?? {}),
       },
       ...init,

@@ -104,6 +104,12 @@ export default function LoginForm() {
       });
 
       if (response.success) {
+        if (response.accessToken) {
+          localStorage.setItem('accessToken', response.accessToken);
+        }
+        if (response.user) {
+          localStorage.setItem('user', JSON.stringify(response.user));
+        }
         setSuccess("Login successful! Redirecting...");
         setTimeout(() => {
           router.push("/dashboard");

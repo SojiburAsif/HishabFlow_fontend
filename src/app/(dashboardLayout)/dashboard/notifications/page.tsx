@@ -67,8 +67,8 @@ export default function NotificationsPage() {
             <Info className="h-6 w-6 shrink-0 text-blue-400 mt-1" />
             <div>
               <h4 className="font-semibold text-blue-200">Notification Center Coming Soon</h4>
-              <p className="mt-1 text-sm text-blue-200/80">
-                We're building a comprehensive notification system. Soon you'll be able to view, filter, and manage all notifications in one place.
+                <p className="mt-1 text-sm text-blue-200/80">
+                We&apos;re building a comprehensive notification system. Soon you&apos;ll be able to view, filter, and manage all notifications in one place.
               </p>
             </div>
           </div>

@@ -17,8 +17,10 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  register: (data: any) => Promise<void>;
+  register: (data: RegisterInput) => Promise<void>;
 }
+
+export type RegisterInput = Record<string, unknown>;
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -38,7 +40,7 @@ export const useAuth = () => {
             setUser(JSON.parse(storedUser));
           }
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Auth initialization error:', error);
         // Clear invalid data
         localStorage.removeItem('accessToken');
@@ -80,7 +82,7 @@ export const useAuth = () => {
     setUser(null);
   };
 
-  const register = async (data: any) => {
+  const register = async (data: RegisterInput) => {
     setIsLoading(true);
     try {
       // TODO: Call auth.service.ts register API

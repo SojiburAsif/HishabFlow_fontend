@@ -136,6 +136,12 @@ export default function RegisterPage() {
       });
 
       if (response.success) {
+        if (response.accessToken) {
+          localStorage.setItem('accessToken', response.accessToken);
+        }
+        if (response.user) {
+          localStorage.setItem('user', JSON.stringify(response.user));
+        }
         setSuccess("Account created successfully! Redirecting...");
         setTimeout(() => {
           router.push("/dashboard");

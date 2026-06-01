@@ -133,7 +133,7 @@ export default function DashboardSettingsPage() {
         <div className="rounded-[2rem] border border-zinc-800 bg-zinc-950 p-6 md:p-8">
           <div className="mb-6">
             <h3 className="text-lg font-bold text-white">Notification Preferences</h3>
-            <p className="mt-1 text-sm text-zinc-400">Choose which notifications you'd like to receive</p>
+            <p className="mt-1 text-sm text-zinc-400">Choose which notifications you&apos;d like to receive</p>
           </div>
 
           <div className="space-y-4">
